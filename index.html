@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cricket Score Tracker</title>
+    <title>RJ Cricket Score Tracker</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -53,12 +53,22 @@
                 margin-bottom: 5px;
             }
         }
+        .scorecard-table th, .scorecard-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: left;
+        }
+        .scorecard-table th {
+            background-color: #f8fafc;
+            font-weight: bold;
+            color: #4a5568;
+        }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
     <div class="score-container bg-white rounded-xl shadow-2xl p-8 w-full max-w-4xl">
         <h1 class="text-4xl font-extrabold text-center text-gray-800 mb-8">
-            🏏 Cricket Score Tracker
+            🏏 RJ's Cricket Score Tracker
         </h1>
 
         <!-- Team Name Inputs -->
@@ -83,6 +93,11 @@
             <!-- Target message will be displayed here -->
         </div>
 
+        <!-- Message Display Area -->
+        <div id="messageDisplay" class="text-center mb-4 p-3 bg-red-100 text-red-800 rounded-lg text-lg font-medium hidden">
+            <!-- Messages will be displayed here -->
+        </div>
+
         <!-- Score Display Cards -->
         <div class="flex flex-col md:flex-row justify-around items-stretch gap-8 mb-10">
             <!-- Team 1 Score Card -->
@@ -104,18 +119,43 @@
             </div>
         </div>
 
+        <!-- Current Batters & New Batsman Input -->
+        <div class="bg-gray-50 p-5 rounded-xl shadow-md mb-8">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">Current Batters</h3>
+            <div class="flex flex-col md:flex-row justify-around items-center gap-4 mb-4">
+                <div class="w-full md:w-1/2">
+                    <label for="strikerNameInput" class="block text-md font-medium text-gray-700 mb-1">Striker:</label>
+                    <input type="text" id="strikerNameInput" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-400" placeholder="Striker Name" readonly>
+                    <p class="text-sm text-gray-600 mt-1">Runs: <span id="strikerRunsDisplay">0</span> | Balls: <span id="strikerBallsDisplay">0</span></p>
+                </div>
+                <div class="w-full md:w-1/2">
+                    <label for="nonStrikerNameInput" class="block text-md font-medium text-gray-700 mb-1">Non-Striker:</label>
+                    <input type="text" id="nonStrikerNameInput" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-400" placeholder="Non-Striker Name" readonly>
+                    <p class="text-sm text-gray-600 mt-1">Runs: <span id="nonStrikerRunsDisplay">0</span> | Balls: <span id="nonStrikerBallsDisplay">0</span></p>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <button onclick="rotateStrike()" id="rotateStrikeBtn" class="btn-secondary bg-gray-500 text-white p-2 rounded-lg text-md font-semibold hover:bg-gray-600 transition duration-200">Rotate Strike</button>
+            </div>
+            <div id="newBatsmanInputArea" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg hidden">
+                <label for="newBatsmanName" class="block text-md font-medium text-red-700 mb-1">New Batsman Name:</label>
+                <input type="text" id="newBatsmanName" class="w-full p-2 border border-red-300 rounded-lg focus:ring-1 focus:ring-red-400" placeholder="Enter New Batsman Name">
+                <button id="addNewBatsmanButton" class="btn-primary bg-red-600 text-white p-2 rounded-lg text-md font-semibold hover:bg-red-700 transition duration-200 mt-2 w-full">Add New Batsman</button>
+            </div>
+        </div>
+
         <!-- Score Controls -->
         <div class="score-controls flex flex-col md:flex-row justify-center gap-6 mb-8">
             <!-- Runs Controls -->
             <div class="bg-gray-50 p-5 rounded-xl shadow-md flex-1 text-center">
                 <h3 class="text-xl font-semibold text-gray-800 mb-4">Add Runs</h3>
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    <button onclick="addRuns(1)" class="btn-primary bg-blue-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition duration-200">1 Run</button>
-                    <button onclick="addRuns(2)" class="btn-primary bg-blue-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition duration-200">2 Runs</button>
-                    <button onclick="addRuns(3)" class="btn-primary bg-blue-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition duration-200">3 Runs</button>
-                    <button onclick="addRuns(4)" class="btn-primary bg-blue-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition duration-200">4 Runs</button>
-                    <button onclick="addRuns(6)" class="btn-primary bg-blue-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition duration-200">6 Runs</button>
-                    <button onclick="addRuns(0)" class="btn-primary bg-yellow-500 text-white p-3 rounded-lg text-lg font-semibold hover:bg-yellow-600 transition duration-200">Dot Ball</button>
+                    <button onclick="addRuns(1)" id="addRun1Btn" class="btn-primary bg-blue-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition duration-200">1 Run</button>
+                    <button onclick="addRuns(2)" id="addRun2Btn" class="btn-primary bg-blue-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition duration-200">2 Runs</button>
+                    <button onclick="addRuns(3)" id="addRun3Btn" class="btn-primary bg-blue-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition duration-200">3 Runs</button>
+                    <button onclick="addRuns(4)" id="addRun4Btn" class="btn-primary bg-blue-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition duration-200">4 Runs</button>
+                    <button onclick="addRuns(6)" id="addRun6Btn" class="btn-primary bg-blue-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition duration-200">6 Runs</button>
+                    <button onclick="addRuns(0)" id="addDotBallBtn" class="btn-primary bg-yellow-500 text-white p-3 rounded-lg text-lg font-semibold hover:bg-yellow-600 transition duration-200">Dot Ball</button>
                 </div>
             </div>
 
@@ -123,12 +163,32 @@
             <div class="bg-gray-50 p-5 rounded-xl shadow-md flex-1 text-center">
                 <h3 class="text-xl font-semibold text-gray-800 mb-4">Game Actions & Extras</h3>
                 <div class="flex flex-col gap-4">
-                    <button onclick="addWicket()" class="btn-secondary bg-red-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-red-700 transition duration-200">Add Wicket</button>
-                    <button onclick="addOver()" class="btn-secondary bg-purple-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-purple-700 transition duration-200">Add Over (6 Balls)</button>
-                    <button onclick="addWide()" class="btn-secondary bg-orange-500 text-white p-3 rounded-lg text-lg font-semibold hover:bg-orange-600 transition duration-200">Wide (+1 Run, No Ball)</button>
-                    <button onclick="addNoBall()" class="btn-secondary bg-teal-500 text-white p-3 rounded-lg text-lg font-semibold hover:bg-teal-600 transition duration-200">No Ball (No Run, No Ball)</button>
-                    <button onclick="nextInnings()" class="btn-secondary bg-indigo-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-indigo-700 transition duration-200">Next Innings</button>
+                    <button onclick="addWicket()" id="addWicketBtn" class="btn-secondary bg-red-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-red-700 transition duration-200">Add Wicket</button>
+                    <button onclick="addOver()" id="addOverBtn" class="btn-secondary bg-purple-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-purple-700 transition duration-200">Add Over (6 Balls)</button>
+                    <button onclick="addWide()" id="addWideBtn" class="btn-secondary bg-orange-500 text-white p-3 rounded-lg text-lg font-semibold hover:bg-orange-600 transition duration-200">Wide (+1 Run, No Ball)</button>
+                    <button onclick="addNoBall()" id="addNoBallBtn" class="btn-secondary bg-teal-500 text-white p-3 rounded-lg text-lg font-semibold hover:bg-teal-600 transition duration-200">No Ball (No Run, No Ball)</button>
+                    <button onclick="nextInnings()" id="nextInningsBtn" class="btn-secondary bg-indigo-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-indigo-700 transition duration-200">Next Innings</button>
                 </div>
+            </div>
+        </div>
+
+        <!-- Scorecard Display -->
+        <div class="bg-gray-50 p-5 rounded-xl shadow-md mb-8">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">Scorecard</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full scorecard-table">
+                    <thead>
+                        <tr>
+                            <th>Player</th>
+                            <th>Runs</th>
+                            <th>Balls</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scorecardBody">
+                        <!-- Player rows will be dynamically inserted here -->
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -146,20 +206,37 @@
     </div>
 
     <script>
+        // Player object constructor
+        function Player(name) {
+            this.name = name;
+            this.runs = 0;
+            this.balls = 0;
+            this.isOut = false;
+        }
+
         // Initialize scores and game state
         let team1Runs = 0;
         let team1Wickets = 0;
         let team1Balls = 0; // Total balls faced by team 1
         let team1Overs = 0.0;
+        let team1Players = []; // Array to store player objects for Team 1
+        let team1CurrentStriker = null;
+        let team1CurrentNonStriker = null;
 
         let team2Runs = 0;
         let team2Wickets = 0;
         let team2Balls = 0; // Total balls faced by team 2
         let team2Overs = 0.0;
+        let team2Players = []; // Array to store player objects for Team 2
+        let team2CurrentStriker = null;
+        let team2CurrentNonStriker = null;
 
         let currentInnings = 1; // 1 for Team 1 batting, 2 for Team 2 batting
         let team1Batting = true; // True if Team 1 is currently batting
         let targetScore = 0; // Stores the target score for the second innings
+
+        // New state variable to manage batsman input flow
+        let batsmanInputStage = 1; // 1: Enter 1st batsman, 2: Enter 2nd batsman, 3: Enter replacement batsman
 
         // Get DOM elements
         const team1NameInput = document.getElementById('team1Name');
@@ -172,7 +249,65 @@
         const team2OversDisplay = document.getElementById('team2Overs');
         const currentInningsDisplay = document.getElementById('currentInnings');
         const winnerDisplay = document.getElementById('winnerDisplay');
-        const targetDisplay = document.getElementById('targetDisplay'); // New target display element
+        const targetDisplay = document.getElementById('targetDisplay');
+
+        const strikerNameInput = document.getElementById('strikerNameInput');
+        const nonStrikerNameInput = document.getElementById('nonStrikerNameInput');
+        const strikerRunsDisplay = document.getElementById('strikerRunsDisplay');
+        const strikerBallsDisplay = document.getElementById('strikerBallsDisplay');
+        const nonStrikerRunsDisplay = document.getElementById('nonStrikerRunsDisplay');
+        const nonStrikerBallsDisplay = document.getElementById('nonStrikerBallsDisplay');
+        const scorecardBody = document.getElementById('scorecardBody');
+        const newBatsmanInputArea = document.getElementById('newBatsmanInputArea');
+        const newBatsmanNameInput = document.getElementById('newBatsmanName');
+        const addNewBatsmanButton = document.getElementById('addNewBatsmanButton'); // Get the button by ID
+        const messageDisplay = document.getElementById('messageDisplay'); // New message display element
+
+        // Get references to all game control buttons
+        const gameControlButtons = [
+            document.getElementById('addRun1Btn'),
+            document.getElementById('addRun2Btn'),
+            document.getElementById('addRun3Btn'),
+            document.getElementById('addRun4Btn'),
+            document.getElementById('addRun6Btn'),
+            document.getElementById('addDotBallBtn'),
+            document.getElementById('addWicketBtn'),
+            document.getElementById('addOverBtn'),
+            document.getElementById('addWideBtn'),
+            document.getElementById('addNoBallBtn'),
+            document.getElementById('nextInningsBtn'),
+            document.getElementById('rotateStrikeBtn')
+        ];
+
+        // Function to display messages to the user
+        function showMessage(message, isError = false) {
+            messageDisplay.textContent = message;
+            messageDisplay.classList.remove('hidden');
+            if (isError) {
+                messageDisplay.classList.remove('bg-blue-100', 'text-blue-800'); // Remove info styling
+                messageDisplay.classList.add('bg-red-100', 'text-red-800'); // Add error styling
+            } else {
+                messageDisplay.classList.remove('bg-red-100', 'text-red-800'); // Remove error styling
+                messageDisplay.classList.add('bg-blue-100', 'text-blue-800'); // Default info styling
+            }
+            setTimeout(() => {
+                messageDisplay.classList.add('hidden');
+            }, 3000); // Hide message after 3 seconds
+        }
+
+        // Function to enable/disable game control buttons
+        function toggleGameControls(enable) {
+            gameControlButtons.forEach(button => {
+                if (button) { // Ensure button exists before trying to set property
+                    button.disabled = !enable;
+                    if (enable) {
+                        button.classList.remove('opacity-50', 'cursor-not-allowed');
+                    } else {
+                        button.classList.add('opacity-50', 'cursor-not-allowed');
+                    }
+                }
+            });
+        }
 
         // Function to update the score display
         function updateDisplay() {
@@ -182,18 +317,19 @@
 
             // Update scores and overs
             team1ScoreDisplay.textContent = `${team1Runs}/${team1Wickets}`;
-            team1OversDisplay.textContent = team1Overs.toFixed(1); // Display one decimal place for overs
+            team1OversDisplay.textContent = team1Overs.toFixed(1);
 
             team2ScoreDisplay.textContent = `${team2Runs}/${team2Wickets}`;
-            team2OversDisplay.textContent = team2Overs.toFixed(1); // Display one decimal place for overs
+            team2OversDisplay.textContent = team2Overs.toFixed(1);
 
             // Update current innings display
             if (team1Batting) {
                 currentInningsDisplay.textContent = `${team1NameInput.value || "Team A"} Batting`;
                 targetDisplay.classList.add('hidden'); // Hide target during first innings
+                updateCurrentBattersDisplay(team1CurrentStriker, team1CurrentNonStriker);
+                updateScorecard(team1Players);
             } else {
                 currentInningsDisplay.textContent = `${team2NameInput.value || "Team B"} Batting`;
-                // Show and update target display in second innings
                 targetDisplay.classList.remove('hidden');
                 const runsNeeded = targetScore - team2Runs;
                 if (runsNeeded > 0) {
@@ -201,10 +337,38 @@
                 } else {
                     targetDisplay.textContent = `Target: ${targetScore} runs. Chased!`;
                 }
+                updateCurrentBattersDisplay(team2CurrentStriker, team2CurrentNonStriker);
+                updateScorecard(team2Players);
             }
 
             // Hide winner display by default
             winnerDisplay.classList.add('hidden');
+        }
+
+        // Function to update current batters display area
+        function updateCurrentBattersDisplay(striker, nonStriker) {
+            strikerNameInput.value = striker ? striker.name : '';
+            nonStrikerNameInput.value = nonStriker ? nonStriker.name : '';
+
+            strikerRunsDisplay.textContent = striker ? striker.runs : 0;
+            strikerBallsDisplay.textContent = striker ? striker.balls : 0;
+            nonStrikerRunsDisplay.textContent = nonStriker ? nonStriker.runs : 0;
+            nonStrikerBallsDisplay.textContent = nonStriker ? nonStriker.balls : 0;
+        }
+
+        // Function to update the scorecard table
+        function updateScorecard(players) {
+            scorecardBody.innerHTML = ''; // Clear previous rows
+            players.forEach(player => {
+                const row = scorecardBody.insertRow();
+                row.insertCell().textContent = player.name;
+                row.insertCell().textContent = player.runs;
+                row.insertCell().textContent = player.balls;
+                row.insertCell().textContent = player.isOut ? 'Out' : 'Batting';
+                if (player.isOut) {
+                    row.classList.add('text-gray-500', 'italic');
+                }
+            });
         }
 
         // Function to calculate overs from balls
@@ -214,23 +378,66 @@
             return parseFloat(`${fullOvers}.${remainingBalls}`);
         }
 
+        // Function to get or create a player
+        function getOrCreatePlayer(name, playersArray) {
+            let player = playersArray.find(p => p.name === name);
+            if (!player) {
+                player = new Player(name);
+                playersArray.push(player);
+            }
+            return player;
+        }
+
         // Function to add runs (for legitimate deliveries)
         function addRuns(runs) {
+            let currentStriker, currentNonStriker;
+            let activeBalls; // To track balls for the current team
+
+            if (team1Batting) {
+                currentStriker = team1CurrentStriker;
+                currentNonStriker = team1CurrentNonStriker;
+                activeBalls = team1Balls; // Get current balls before increment
+            } else {
+                currentStriker = team2CurrentStriker;
+                currentNonStriker = team2CurrentNonStriker;
+                activeBalls = team2Balls; // Get current balls before increment
+            }
+
+            if (!currentStriker || !currentNonStriker) {
+                showMessage("Please set the current striker and non-striker names first!", true);
+                return;
+            }
+
+            currentStriker.runs += runs;
+            currentStriker.balls++;
+            activeBalls++; // Increment balls for the current team
+
+            let shouldRotateStrike = false;
+
+            // Rule: Strike rotates if it's an odd number of runs AND not the last ball of the over,
+            // OR if it's the last ball of the over AND not 1 run.
+            if ((runs % 2 !== 0 && activeBalls % 6 !== 0) || (activeBalls % 6 === 0 && runs !== 1 && runs !== 3)) {
+                shouldRotateStrike = true;
+            }
+
+            // Apply the rotation if needed
+            if (shouldRotateStrike) {
+                rotateStrike();
+            }
+            
+            // Update team totals (must happen after ball increment and before display update)
             if (team1Batting) {
                 team1Runs += runs;
-                team1Balls++; // Increment ball count for legitimate deliveries
+                team1Balls = activeBalls; // Assign updated balls
                 team1Overs = calculateOvers(team1Balls);
             } else {
                 team2Runs += runs;
-                team2Balls++; // Increment ball count for legitimate deliveries
+                team2Balls = activeBalls; // Assign updated balls
                 team2Overs = calculateOvers(team2Balls);
-                // Check if target is chased
-                if (team2Runs >= targetScore) { // Changed to >= to include tied scores resulting in win for chasing team
-                    declareWinner(team2NameInput.value || "Team B");
-                    return; // Stop further updates if winner declared
-                }
             }
+
             updateDisplay();
+            checkGameEndCondition();
         }
 
         // Function to add a wide ball
@@ -239,52 +446,80 @@
                 team1Runs += 1; // Add 1 run for wide
             } else {
                 team2Runs += 1; // Add 1 run for wide
-                // Check if target is chased
-                if (team2Runs >= targetScore) {
-                    declareWinner(team2NameInput.value || "Team B");
-                    return;
-                }
             }
             // Do NOT increment balls for a wide
+
             updateDisplay();
+            checkGameEndCondition();
         }
 
         // Function to add a no ball
         function addNoBall() {
             // Do NOT increment balls for a no ball
             updateDisplay();
+            checkGameEndCondition();
         }
 
         // Function to add a wicket
         function addWicket() {
+            let activeWickets;
+            let currentStriker, currentNonStriker;
+
             if (team1Batting) {
-                if (team1Wickets < 10) { // Max 10 wickets
-                    team1Wickets++;
-                    team1Balls++; // A wicket also counts as a ball
-                    team1Overs = calculateOvers(team1Balls);
-                }
-                if (team1Wickets === 10) {
-                    // All out, automatically switch innings
-                    nextInnings();
-                    return;
-                }
+                activeWickets = team1Wickets;
+                currentStriker = team1CurrentStriker;
+                currentNonStriker = team1CurrentNonStriker;
             } else {
-                if (team2Wickets < 10) { // Max 10 wickets
+                activeWickets = team2Wickets;
+                currentStriker = team2CurrentStriker;
+                currentNonStriker = team2CurrentNonStriker;
+            }
+
+            if (!currentStriker) {
+                showMessage("No striker set to take a wicket!", true);
+                return;
+            }
+
+            if (activeWickets < 10) { // Max 10 wickets
+                currentStriker.isOut = true; // Mark current striker as out
+                currentStriker.balls++; // Wicket also counts as a ball
+                
+                if (team1Batting) {
+                    team1Wickets++;
+                    team1Balls++;
+                    team1Overs = calculateOvers(team1Balls);
+                    team1CurrentStriker = currentNonStriker; // Non-striker becomes new striker
+                    team1CurrentNonStriker = null; // Non-striker slot is now empty
+                } else {
                     team2Wickets++;
-                    team2Balls++; // A wicket also counts as a ball
+                    team2Balls++;
                     team2Overs = calculateOvers(team2Balls);
+                    team2CurrentStriker = currentNonStriker; // Non-striker becomes new striker
+                    team2CurrentNonStriker = null; // Non-striker slot is now empty
                 }
-                if (team2Wickets === 10) {
-                    // All out, declare winner based on scores
-                    if (team2Runs < targetScore -1) { // If all out and still short of target
-                        declareWinner(team1NameInput.value || "Team A");
-                    } else if (team2Runs === targetScore -1) { // If all out and tied
-                        declareWinner("Match Tied!");
-                    } else if (team2Runs >= targetScore) { // If all out and chased
-                        declareWinner(team2NameInput.value || "Team B");
-                    }
-                    return;
-                }
+
+                // Prepare for new batsman input
+                newBatsmanInputArea.classList.remove('hidden');
+                newBatsmanNameInput.value = ''; // Clear previous input
+                newBatsmanNameInput.placeholder = "Enter New Batsman Name (Non-Striker)"; // Clarify role
+                newBatsmanNameInput.focus(); // Focus for user input
+                toggleGameControls(false); // Disable controls until new batsman is added
+                batsmanInputStage = 3; // Set stage for replacement batsman
+                updateDisplay(); // Update display to show wicket and prompt for new batsman
+                showMessage("Wicket! Please enter the new batsman's name.", false);
+            } else {
+                // All out
+                updateDisplay(); // Update display one last time
+                checkGameEndCondition();
+            }
+        }
+
+        // Function to rotate strike manually
+        function rotateStrike() {
+            if (team1Batting) {
+                [team1CurrentStriker, team1CurrentNonStriker] = [team1CurrentNonStriker, team1CurrentStriker];
+            } else {
+                [team2CurrentStriker, team2CurrentNonStriker] = [team2CurrentNonStriker, team2CurrentStriker];
             }
             updateDisplay();
         }
@@ -292,18 +527,16 @@
         // Function to add a full over (6 balls)
         function addOver() {
             if (team1Batting) {
-                team1Balls += (6 - (team1Balls % 6)); // Complete current over, then add 6 more
+                team1Balls += (6 - (team1Balls % 6)); // Complete current over, then add remaining balls to reach 6
                 team1Overs = calculateOvers(team1Balls);
             } else {
-                team2Balls += (6 - (team2Balls % 6)); // Complete current over, then add 6 more
+                team2Balls += (6 - (team2Balls % 6)); // Complete current over, then add remaining balls to reach 6
                 team2Overs = calculateOvers(team2Balls);
-                // Check if target is chased after a full over
-                if (team2Runs >= targetScore) {
-                    declareWinner(team2NameInput.value || "Team B");
-                    return;
-                }
             }
+
+            rotateStrike(); // Strike rotates at the end of every over
             updateDisplay();
+            checkGameEndCondition();
         }
 
         // Function to switch innings
@@ -313,18 +546,44 @@
                 team1Batting = false;
                 currentInnings = 2;
                 winnerDisplay.classList.add('hidden'); // Hide winner message when switching innings
+
+                // Clear current striker/non-striker for the new innings
+                team1CurrentStriker = null;
+                team1CurrentNonStriker = null;
+                team2CurrentStriker = null; // Ensure team2's are null to start fresh
+                team2CurrentNonStriker = null;
+
+                // Prompt for first two batsmen of 2nd innings
+                newBatsmanInputArea.classList.remove('hidden');
+                newBatsmanNameInput.placeholder = "Enter 1st Batsman Name";
+                newBatsmanNameInput.value = ''; // Clear input field
+                strikerNameInput.value = ''; // Clear display fields
+                nonStrikerNameInput.value = '';
+                toggleGameControls(false); // Disable controls until new batsmen are entered
+                batsmanInputStage = 1; // Reset stage for new innings
+                showMessage("Team 1 innings ended. Please enter the first two batsmen for Team 2.", false);
+
             } else {
                 // If already in 2nd innings, this means the game is over
-                if (team1Runs > team2Runs) {
-                    declareWinner(team1NameInput.value || "Team A");
-                } else if (team2Runs > team1Runs) {
-                    declareWinner(team2NameInput.value || "Team B");
-                } else {
-                    declareWinner("Match Tied!");
-                }
+                checkGameEndCondition();
                 return; // Stop further updates after game ends
             }
             updateDisplay();
+        }
+
+        // Function to check game end conditions and declare winner
+        function checkGameEndCondition() {
+            if (!team1Batting) { // Only check in second innings
+                if (team2Runs >= targetScore) {
+                    declareWinner(team2NameInput.value || "Team B");
+                } else if (team2Wickets === 10 || team2Overs >= 20) { // Assuming 20 overs as limit, adjust as needed
+                    if (team2Runs < targetScore - 1) {
+                        declareWinner(team1NameInput.value || "Team A");
+                    } else if (team2Runs === targetScore - 1) {
+                        declareWinner("Match Tied!");
+                    }
+                }
+            }
         }
 
         // Function to declare the winner
@@ -334,7 +593,7 @@
                 winnerDisplay.textContent = `🤝 Match Tied! 🤝`;
             }
             winnerDisplay.classList.remove('hidden');
-            // For simplicity, we'll just show the winner and let user reset manually.
+            toggleGameControls(false); // Disable controls after game ends
         }
 
         // Function to reset the score
@@ -343,11 +602,17 @@
             team1Wickets = 0;
             team1Balls = 0;
             team1Overs = 0.0;
+            team1Players = [];
+            team1CurrentStriker = null;
+            team1CurrentNonStriker = null;
 
             team2Runs = 0;
             team2Wickets = 0;
             team2Balls = 0;
             team2Overs = 0.0;
+            team2Players = [];
+            team2CurrentStriker = null;
+            team2CurrentNonStriker = null;
 
             currentInnings = 1;
             team1Batting = true;
@@ -357,15 +622,95 @@
             if (!team1NameInput.value) team1NameInput.value = "Team A";
             if (!team2NameInput.value) team2NameInput.value = "Team B";
 
+            // Clear current batter inputs
+            strikerNameInput.value = '';
+            nonStrikerNameInput.value = '';
+            newBatsmanNameInput.value = '';
+            newBatsmanInputArea.classList.add('hidden'); // Hide new batsman input
+
+            toggleGameControls(false); // Disable all controls on reset
+
+            // Prompt for initial batsmen for the first innings
+            newBatsmanInputArea.classList.remove('hidden');
+            newBatsmanNameInput.placeholder = "Enter 1st Batsman Name";
+            batsmanInputStage = 1; // Reset stage for new game
+            showMessage("Game Reset. Please enter the names of the first two batsmen for Team 1.", false);
+
             updateDisplay();
         }
+
+        // Event listener for the "Add New Batsman" button
+        addNewBatsmanButton.onclick = function() {
+            const newName = newBatsmanNameInput.value.trim();
+            if (!newName) {
+                showMessage("Please enter the batsman's name.", true);
+                return;
+            }
+
+            let currentPlayersArray;
+            if (team1Batting) {
+                currentPlayersArray = team1Players;
+            } else {
+                currentPlayersArray = team2Players;
+            }
+
+            const newBatsman = getOrCreatePlayer(newName, currentPlayersArray);
+
+            if (team1Batting) {
+                if (batsmanInputStage === 1) { // Expecting 1st batsman
+                    team1CurrentStriker = newBatsman;
+                    newBatsmanNameInput.value = '';
+                    newBatsmanNameInput.placeholder = "Enter 2nd Batsman Name";
+                    batsmanInputStage = 2;
+                    showMessage("Now enter the 2nd batsman's name.", false);
+                } else if (batsmanInputStage === 2) { // Expecting 2nd batsman
+                    team1CurrentNonStriker = newBatsman;
+                    newBatsmanInputArea.classList.add('hidden'); // Hide after both are set
+                    toggleGameControls(true); // Enable controls
+                    showMessage("Batsmen set. You can now track scores!", false);
+                } else if (batsmanInputStage === 3) { // Expecting replacement after wicket (for non-striker)
+                    team1CurrentNonStriker = newBatsman;
+                    newBatsmanInputArea.classList.add('hidden'); // Hide after new batsman is set
+                    toggleGameControls(true); // Enable controls
+                    showMessage("New batsman added. Game continues!", false);
+                }
+            } else { // Team 2 batting
+                if (batsmanInputStage === 1) { // Expecting 1st batsman
+                    team2CurrentStriker = newBatsman;
+                    newBatsmanNameInput.value = '';
+                    newBatsmanNameInput.placeholder = "Enter 2nd Batsman Name";
+                    batsmanInputStage = 2;
+                    showMessage("Now enter the 2nd batsman's name.", false);
+                } else if (batsmanInputStage === 2) { // Expecting 2nd batsman
+                    team2CurrentNonStriker = newBatsman;
+                    newBatsmanInputArea.classList.add('hidden');
+                    toggleGameControls(true);
+                    showMessage("Batsmen set. You can now track scores!", false);
+                } else if (batsmanInputStage === 3) { // Expecting replacement after wicket (for non-striker)
+                    team2CurrentNonStriker = newBatsman;
+                    newBatsmanInputArea.classList.add('hidden');
+                    toggleGameControls(true);
+                    showMessage("New batsman added. Game continues!", false);
+                }
+            }
+            updateDisplay(); // Update display to show changes
+        };
+
 
         // Event listeners for team name input changes
         team1NameInput.addEventListener('input', updateDisplay);
         team2NameInput.addEventListener('input', updateDisplay);
 
-        // Initial display update when the page loads
-        document.addEventListener('DOMContentLoaded', updateDisplay);
+        // Initial display update and batsman setup when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDisplay();
+            toggleGameControls(false); // Disable all controls initially
+            // Initial prompt for first two batsmen
+            newBatsmanInputArea.classList.remove('hidden');
+            newBatsmanNameInput.placeholder = "Enter 1st Batsman Name";
+            batsmanInputStage = 1; // Ensure initial stage is 1
+            showMessage("Please enter the names of the first two batsmen for Team 1.", false);
+        });
     </script>
 </body>
 </html>
