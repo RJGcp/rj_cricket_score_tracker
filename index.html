@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cricket Score Tracker</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for Inter font and general body styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Light gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Ensure it takes full viewport height */
+            padding: 20px; /* Add some padding around the content */
+            box-sizing: border-box; /* Include padding in element's total width and height */
+        }
+        /* Ensure the main container is responsive */
+        .score-container {
+            max-width: 900px;
+            width: 100%;
+        }
+        /* Style for the button hover effects */
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .btn-reset:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 768px) {
+            .score-card {
+                flex-direction: column;
+            }
+            .score-controls {
+                flex-direction: column;
+            }
+            .score-controls > div {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            .score-controls button {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <div class="score-container bg-white rounded-xl shadow-2xl p-8 w-full max-w-4xl">
+        <h1 class="text-4xl font-extrabold text-center text-gray-800 mb-8">
+            🏏 Cricket Score Tracker
+        </h1>
+
+        <!-- Team Name Inputs -->
+        <div class="flex flex-col md:flex-row justify-around items-center mb-8 space-y-4 md:space-y-0 md:space-x-8">
+            <div class="w-full md:w-1/2">
+                <label for="team1Name" class="block text-lg font-semibold text-gray-700 mb-2">Team 1 Name:</label>
+                <input type="text" id="team1Name" value="Team A" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition duration-200" placeholder="Enter Team 1 Name">
+            </div>
+            <div class="w-full md:w-1/2">
+                <label for="team2Name" class="block text-lg font-semibold text-gray-700 mb-2">Team 2 Name:</label>
+                <input type="text" id="team2Name" value="Team B" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition duration-200" placeholder="Enter Team 2 Name">
+            </div>
+        </div>
+
+        <!-- Current Innings Display -->
+        <div class="text-center mb-4">
+            <p class="text-2xl font-bold text-gray-700">Current Innings: <span id="currentInnings" class="text-blue-600">Team A Batting</span></p>
+        </div>
+
+        <!-- Target Score Display -->
+        <div id="targetDisplay" class="text-center mb-8 p-3 bg-blue-50 text-blue-800 rounded-lg text-xl font-semibold hidden">
+            <!-- Target message will be displayed here -->
+        </div>
+
+        <!-- Score Display Cards -->
+        <div class="flex flex-col md:flex-row justify-around items-stretch gap-8 mb-10">
+            <!-- Team 1 Score Card -->
+            <div class="score-card bg-gradient-to-br from-blue-500 to-blue-700 text-white p-6 rounded-xl shadow-lg flex-1 flex flex-col justify-between items-center transform transition duration-300 hover:scale-105">
+                <h2 id="displayTeam1Name" class="text-3xl font-bold mb-4">Team A</h2>
+                <div class="text-center mb-4">
+                    <p class="text-6xl font-extrabold" id="team1Score">0/0</p>
+                    <p class="text-xl mt-2">Overs: <span id="team1Overs">0.0</span></p>
+                </div>
+            </div>
+
+            <!-- Team 2 Score Card -->
+            <div class="score-card bg-gradient-to-br from-green-500 to-green-700 text-white p-6 rounded-xl shadow-lg flex-1 flex flex-col justify-between items-center transform transition duration-300 hover:scale-105">
+                <h2 id="displayTeam2Name" class="text-3xl font-bold mb-4">Team B</h2>
+                <div class="text-center mb-4">
+                    <p class="text-6xl font-extrabold" id="team2Score">0/0</p>
+                    <p class="text-xl mt-2">Overs: <span id="team2Overs">0.0</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Score Controls -->
+        <div class="score-controls flex flex-col md:flex-row justify-center gap-6 mb-8">
+            <!-- Runs Controls -->
+            <div class="bg-gray-50 p-5 rounded-xl shadow-md flex-1 text-center">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Add Runs</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    <button onclick="addRuns(1)" class="btn-primary bg-blue-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition duration-200">1 Run</button>
+                    <button onclick="addRuns(2)" class="btn-primary bg-blue-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition duration-200">2 Runs</button>
+                    <button onclick="addRuns(3)" class="btn-primary bg-blue-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition duration-200">3 Runs</button>
+                    <button onclick="addRuns(4)" class="btn-primary bg-blue-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition duration-200">4 Runs</button>
+                    <button onclick="addRuns(6)" class="btn-primary bg-blue-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition duration-200">6 Runs</button>
+                    <button onclick="addRuns(0)" class="btn-primary bg-yellow-500 text-white p-3 rounded-lg text-lg font-semibold hover:bg-yellow-600 transition duration-200">Dot Ball</button>
+                </div>
+            </div>
+
+            <!-- Wicket, Over & Extras Controls -->
+            <div class="bg-gray-50 p-5 rounded-xl shadow-md flex-1 text-center">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Game Actions & Extras</h3>
+                <div class="flex flex-col gap-4">
+                    <button onclick="addWicket()" class="btn-secondary bg-red-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-red-700 transition duration-200">Add Wicket</button>
+                    <button onclick="addOver()" class="btn-secondary bg-purple-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-purple-700 transition duration-200">Add Over (6 Balls)</button>
+                    <button onclick="addWide()" class="btn-secondary bg-orange-500 text-white p-3 rounded-lg text-lg font-semibold hover:bg-orange-600 transition duration-200">Wide (+1 Run, No Ball)</button>
+                    <button onclick="addNoBall()" class="btn-secondary bg-teal-500 text-white p-3 rounded-lg text-lg font-semibold hover:bg-teal-600 transition duration-200">No Ball (No Run, No Ball)</button>
+                    <button onclick="nextInnings()" class="btn-secondary bg-indigo-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-indigo-700 transition duration-200">Next Innings</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reset Button -->
+        <div class="text-center mt-8">
+            <button onclick="resetScore()" class="btn-reset bg-gray-700 text-white p-4 rounded-lg text-xl font-semibold hover:bg-gray-800 transition duration-200 w-full md:w-auto px-10">
+                Reset Score
+            </button>
+        </div>
+
+        <!-- Winner Display -->
+        <div id="winnerDisplay" class="text-center mt-8 p-4 bg-yellow-100 text-yellow-800 rounded-lg text-2xl font-bold hidden">
+            <!-- Winner message will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        // Initialize scores and game state
+        let team1Runs = 0;
+        let team1Wickets = 0;
+        let team1Balls = 0; // Total balls faced by team 1
+        let team1Overs = 0.0;
+
+        let team2Runs = 0;
+        let team2Wickets = 0;
+        let team2Balls = 0; // Total balls faced by team 2
+        let team2Overs = 0.0;
+
+        let currentInnings = 1; // 1 for Team 1 batting, 2 for Team 2 batting
+        let team1Batting = true; // True if Team 1 is currently batting
+        let targetScore = 0; // Stores the target score for the second innings
+
+        // Get DOM elements
+        const team1NameInput = document.getElementById('team1Name');
+        const team2NameInput = document.getElementById('team2Name');
+        const displayTeam1Name = document.getElementById('displayTeam1Name');
+        const displayTeam2Name = document.getElementById('displayTeam2Name');
+        const team1ScoreDisplay = document.getElementById('team1Score');
+        const team1OversDisplay = document.getElementById('team1Overs');
+        const team2ScoreDisplay = document.getElementById('team2Score');
+        const team2OversDisplay = document.getElementById('team2Overs');
+        const currentInningsDisplay = document.getElementById('currentInnings');
+        const winnerDisplay = document.getElementById('winnerDisplay');
+        const targetDisplay = document.getElementById('targetDisplay'); // New target display element
+
+        // Function to update the score display
+        function updateDisplay() {
+            // Update team names
+            displayTeam1Name.textContent = team1NameInput.value || "Team A";
+            displayTeam2Name.textContent = team2NameInput.value || "Team B";
+
+            // Update scores and overs
+            team1ScoreDisplay.textContent = `${team1Runs}/${team1Wickets}`;
+            team1OversDisplay.textContent = team1Overs.toFixed(1); // Display one decimal place for overs
+
+            team2ScoreDisplay.textContent = `${team2Runs}/${team2Wickets}`;
+            team2OversDisplay.textContent = team2Overs.toFixed(1); // Display one decimal place for overs
+
+            // Update current innings display
+            if (team1Batting) {
+                currentInningsDisplay.textContent = `${team1NameInput.value || "Team A"} Batting`;
+                targetDisplay.classList.add('hidden'); // Hide target during first innings
+            } else {
+                currentInningsDisplay.textContent = `${team2NameInput.value || "Team B"} Batting`;
+                // Show and update target display in second innings
+                targetDisplay.classList.remove('hidden');
+                const runsNeeded = targetScore - team2Runs;
+                if (runsNeeded > 0) {
+                    targetDisplay.textContent = `Target: ${targetScore} runs. ${runsNeeded} runs to win.`;
+                } else {
+                    targetDisplay.textContent = `Target: ${targetScore} runs. Chased!`;
+                }
+            }
+
+            // Hide winner display by default
+            winnerDisplay.classList.add('hidden');
+        }
+
+        // Function to calculate overs from balls
+        function calculateOvers(balls) {
+            const fullOvers = Math.floor(balls / 6);
+            const remainingBalls = balls % 6;
+            return parseFloat(`${fullOvers}.${remainingBalls}`);
+        }
+
+        // Function to add runs (for legitimate deliveries)
+        function addRuns(runs) {
+            if (team1Batting) {
+                team1Runs += runs;
+                team1Balls++; // Increment ball count for legitimate deliveries
+                team1Overs = calculateOvers(team1Balls);
+            } else {
+                team2Runs += runs;
+                team2Balls++; // Increment ball count for legitimate deliveries
+                team2Overs = calculateOvers(team2Balls);
+                // Check if target is chased
+                if (team2Runs >= targetScore) { // Changed to >= to include tied scores resulting in win for chasing team
+                    declareWinner(team2NameInput.value || "Team B");
+                    return; // Stop further updates if winner declared
+                }
+            }
+            updateDisplay();
+        }
+
+        // Function to add a wide ball
+        function addWide() {
+            if (team1Batting) {
+                team1Runs += 1; // Add 1 run for wide
+            } else {
+                team2Runs += 1; // Add 1 run for wide
+                // Check if target is chased
+                if (team2Runs >= targetScore) {
+                    declareWinner(team2NameInput.value || "Team B");
+                    return;
+                }
+            }
+            // Do NOT increment balls for a wide
+            updateDisplay();
+        }
+
+        // Function to add a no ball
+        function addNoBall() {
+            // Do NOT increment balls for a no ball
+            updateDisplay();
+        }
+
+        // Function to add a wicket
+        function addWicket() {
+            if (team1Batting) {
+                if (team1Wickets < 10) { // Max 10 wickets
+                    team1Wickets++;
+                    team1Balls++; // A wicket also counts as a ball
+                    team1Overs = calculateOvers(team1Balls);
+                }
+                if (team1Wickets === 10) {
+                    // All out, automatically switch innings
+                    nextInnings();
+                    return;
+                }
+            } else {
+                if (team2Wickets < 10) { // Max 10 wickets
+                    team2Wickets++;
+                    team2Balls++; // A wicket also counts as a ball
+                    team2Overs = calculateOvers(team2Balls);
+                }
+                if (team2Wickets === 10) {
+                    // All out, declare winner based on scores
+                    if (team2Runs < targetScore -1) { // If all out and still short of target
+                        declareWinner(team1NameInput.value || "Team A");
+                    } else if (team2Runs === targetScore -1) { // If all out and tied
+                        declareWinner("Match Tied!");
+                    } else if (team2Runs >= targetScore) { // If all out and chased
+                        declareWinner(team2NameInput.value || "Team B");
+                    }
+                    return;
+                }
+            }
+            updateDisplay();
+        }
+
+        // Function to add a full over (6 balls)
+        function addOver() {
+            if (team1Batting) {
+                team1Balls += (6 - (team1Balls % 6)); // Complete current over, then add 6 more
+                team1Overs = calculateOvers(team1Balls);
+            } else {
+                team2Balls += (6 - (team2Balls % 6)); // Complete current over, then add 6 more
+                team2Overs = calculateOvers(team2Balls);
+                // Check if target is chased after a full over
+                if (team2Runs >= targetScore) {
+                    declareWinner(team2NameInput.value || "Team B");
+                    return;
+                }
+            }
+            updateDisplay();
+        }
+
+        // Function to switch innings
+        function nextInnings() {
+            if (currentInnings === 1) {
+                targetScore = team1Runs + 1; // Set target for second innings
+                team1Batting = false;
+                currentInnings = 2;
+                winnerDisplay.classList.add('hidden'); // Hide winner message when switching innings
+            } else {
+                // If already in 2nd innings, this means the game is over
+                if (team1Runs > team2Runs) {
+                    declareWinner(team1NameInput.value || "Team A");
+                } else if (team2Runs > team1Runs) {
+                    declareWinner(team2NameInput.value || "Team B");
+                } else {
+                    declareWinner("Match Tied!");
+                }
+                return; // Stop further updates after game ends
+            }
+            updateDisplay();
+        }
+
+        // Function to declare the winner
+        function declareWinner(winnerName) {
+            winnerDisplay.textContent = `🎉 ${winnerName} Wins! 🎉`;
+            if (winnerName === "Match Tied!") {
+                winnerDisplay.textContent = `🤝 Match Tied! 🤝`;
+            }
+            winnerDisplay.classList.remove('hidden');
+            // For simplicity, we'll just show the winner and let user reset manually.
+        }
+
+        // Function to reset the score
+        function resetScore() {
+            team1Runs = 0;
+            team1Wickets = 0;
+            team1Balls = 0;
+            team1Overs = 0.0;
+
+            team2Runs = 0;
+            team2Wickets = 0;
+            team2Balls = 0;
+            team2Overs = 0.0;
+
+            currentInnings = 1;
+            team1Batting = true;
+            targetScore = 0; // Reset target score
+
+            // Reset team names to default if they were empty
+            if (!team1NameInput.value) team1NameInput.value = "Team A";
+            if (!team2NameInput.value) team2NameInput.value = "Team B";
+
+            updateDisplay();
+        }
+
+        // Event listeners for team name input changes
+        team1NameInput.addEventListener('input', updateDisplay);
+        team2NameInput.addEventListener('input', updateDisplay);
+
+        // Initial display update when the page loads
+        document.addEventListener('DOMContentLoaded', updateDisplay);
+    </script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+# requirements.txt
+Flask
+gunicorn # Gunicorn is a WSGI HTTP Server for UNIX. Cloud Run often uses it.
+
