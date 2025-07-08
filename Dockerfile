@@ -21,4 +21,4 @@ ENV PORT 443
 
 # Run the Flask application using Gunicorn
 # Use the -b 0.0.0.0:$(PORT) to bind to all interfaces and the dynamic port
-CMD ["gunicorn", "--bind", "0.0.0.0:{PORT}", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:443", "app:app"]
