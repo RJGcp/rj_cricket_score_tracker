@@ -134,9 +134,9 @@ Test this in local dev machine:
     source venv/bin/activate
     pip install -r requirements.txt
     gcloud auth application-default login
-    export FLASK_SECRET_KEY=""
+    export FLASK_SECRET_KEY="f9264b6c5c6c448da9ec4ee1291e9e495146a2c8b8b42be71adandansdbasfbasou"
     export __firebase_config="{}" # Empty JSON string for local testing
-    export __initial_auth_token="f9264b6c5c6c448da9ec4ee1291e9e495146a2c8b8b42be71adandansdbasfbasou"
+    export __initial_auth_token=""
     export __app_id="local-test-app"
     export PORT=8080 # Optional, but good practice
     python3 app.py
