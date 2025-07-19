@@ -510,20 +510,15 @@
         // Function to add runs (for legitimate deliveries)
         function addRuns(runs) {
             let currentStriker, currentNonStriker;
-            let activeBallsRef, activeRunsRef;
             let currentBowlerRef;
 
             if (team1Batting) {
                 currentStriker = team1CurrentStriker;
                 currentNonStriker = team1CurrentNonStriker;
-                activeBallsRef = 'team1Balls';
-                activeRunsRef = 'team1Runs';
                 currentBowlerRef = team2CurrentBowler;
             } else {
                 currentStriker = team2CurrentStriker;
                 currentNonStriker = team2CurrentNonStriker;
-                activeBallsRef = 'team2Balls';
-                activeRunsRef = 'team2Runs';
                 currentBowlerRef = team1CurrentBowler;
             }
 
@@ -538,15 +533,23 @@
 
             currentStriker.runs += runs;
             currentStriker.balls++;
-            window[activeRunsRef] += runs; // Update team runs
-            window[activeBallsRef]++; // Update team balls
+            
+            // Directly update global team runs and balls
+            if (team1Batting) {
+                team1Runs += runs;
+                team1Balls++;
+            } else {
+                team2Runs += runs;
+                team2Balls++;
+            }
 
             currentBowlerRef.ballsBowled++; // Bowler's balls bowled
             currentBowlerRef.runsGiven += runs; // Bowler's runs given
 
             let shouldRotateStrike = false;
 
-            const isEndOfOver = (window[activeBallsRef] % 6 === 0);
+            const currentTeamBalls = team1Batting ? team1Balls : team2Balls;
+            const isEndOfOver = (currentTeamBalls % 6 === 0);
             const isOddRuns = (runs % 2 !== 0);
 
             if (isEndOfOver) {
@@ -596,16 +599,14 @@
 
         // Function to process runs scored off a no-ball
         function processNoBallRuns(runsScoredOffBat) {
-            let currentStriker, activeRunsRef;
+            let currentStriker;
             let currentBowlerRef;
 
             if (team1Batting) {
                 currentStriker = team1CurrentStriker;
-                activeRunsRef = 'team1Runs';
                 currentBowlerRef = team2CurrentBowler;
             } else {
                 currentStriker = team2CurrentStriker;
-                activeRunsRef = 'team2Runs';
                 currentBowlerRef = team1CurrentBowler;
             }
 
@@ -622,7 +623,12 @@
 
             // Add 1 extra run for the no-ball itself to the team total
             // Add runs scored off the bat to both team total and striker's runs
-            window[activeRunsRef] += (1 + runsScoredOffBat);
+            if (team1Batting) {
+                team1Runs += (1 + runsScoredOffBat);
+            } else {
+                team2Runs += (1 + runsScoredOffBat);
+            }
+            
             currentStriker.runs += runsScoredOffBat;
             currentStriker.balls++; // No-ball still counts as a ball faced for the batsman
 
@@ -648,14 +654,13 @@
 
         // Function to add a wide ball
         function addWide() {
-            let activeRunsRef;
             let currentBowlerRef;
 
             if (team1Batting) {
-                activeRunsRef = 'team1Runs';
+                team1Runs += 1; // Add 1 run for wide
                 currentBowlerRef = team2CurrentBowler;
             } else {
-                activeRunsRef = 'team2Runs';
+                team2Runs += 1; // Add 1 run for wide
                 currentBowlerRef = team1CurrentBowler;
             }
 
@@ -664,7 +669,6 @@
                 return;
             }
 
-            window[activeRunsRef] += 1; // Add 1 run for wide
             currentBowlerRef.runsGiven += 1; // Bowler's runs given for wide
 
             // Do NOT increment balls for a wide for team or bowler
@@ -675,21 +679,14 @@
 
         // Function to add a wicket
         function addWicket() {
-            let activeWicketsRef, activeBallsRef, activeOversRef;
             let currentStriker, currentNonStriker;
             let currentBowlerRef;
 
             if (team1Batting) {
-                activeWicketsRef = 'team1Wickets';
-                activeBallsRef = 'team1Balls';
-                activeOversRef = 'team1Overs';
                 currentStriker = team1CurrentStriker;
                 currentNonStriker = team1CurrentNonStriker;
                 currentBowlerRef = team2CurrentBowler;
             } else {
-                activeWicketsRef = 'team2Wickets';
-                activeBallsRef = 'team2Balls';
-                activeOversRef = 'team2Overs';
                 currentStriker = team2CurrentStriker;
                 currentNonStriker = team2CurrentNonStriker;
                 currentBowlerRef = team1CurrentBowler;
@@ -704,35 +701,69 @@
                 return;
             }
 
-            if (window[activeWicketsRef] < 10) { // Max 10 wickets
-                currentStriker.isOut = true; // Mark current striker as out
-                currentStriker.balls++; // Wicket also counts as a ball faced for batsman
-                
-                window[activeWicketsRef]++; // Increment team wickets
-                window[activeBallsRef]++; // Increment team balls
-                window[activeOversRef] = calculateFormattedOvers(window[activeBallsRef]);
+            // Directly update global team wickets and balls
+            if (team1Batting) {
+                if (team1Wickets < 10) { // Max 10 wickets
+                    currentStriker.isOut = true; // Mark current striker as out
+                    currentStriker.balls++; // Wicket also counts as a ball faced for batsman
+                    
+                    team1Wickets++; // Increment team wickets
+                    team1Balls++; // Increment team balls
+                    team1Overs = calculateFormattedOvers(team1Balls);
 
-                currentBowlerRef.ballsBowled++; // Bowler's balls bowled
-                currentBowlerRef.wicketsTaken++; // Bowler gets the wicket
+                    currentBowlerRef.ballsBowled++; // Bowler's balls bowled
+                    currentBowlerRef.wicketsTaken++; // Bowler gets the wicket
 
-                // Handle end of bowler's over if this wicket was the 6th ball
-                if (currentBowlerRef.ballsBowled % 6 === 0) {
-                    endOfBowlerOver(currentBowlerRef);
+                    // Handle end of bowler's over if this wicket was the 6th ball
+                    if (currentBowlerRef.ballsBowled % 6 === 0) {
+                        endOfBowlerOver(currentBowlerRef);
+                    }
+
+                    // Prepare for new batsman input
+                    newBatsmanInputArea.classList.remove('hidden');
+                    newBatsmanNameInput.value = ''; // Clear previous input
+                    newBatsmanNameInput.placeholder = "Enter New Batsman Name (Non-Striker)"; // Clarify role
+                    newBatsmanNameInput.focus(); // Focus for user input
+                    toggleGameControls(false); // Disable controls until new batsman is added
+                    inputStage = 'newBatsman'; // Set stage for replacement batsman
+                    showMessage("Wicket! Please enter the new batsman's name.", false);
+                } else {
+                    // All out
+                    updateDisplay(); // Update display one last time
+                    checkGameEndCondition();
                 }
+            } else { // Team 2 batting
+                if (team2Wickets < 10) { // Max 10 wickets
+                    currentStriker.isOut = true; // Mark current striker as out
+                    currentStriker.balls++; // Wicket also counts as a ball faced for batsman
+                    
+                    team2Wickets++; // Increment team wickets
+                    team2Balls++; // Increment team balls
+                    team2Overs = calculateFormattedOvers(team2Balls);
 
-                // Prepare for new batsman input
-                newBatsmanInputArea.classList.remove('hidden');
-                newBatsmanNameInput.value = ''; // Clear previous input
-                newBatsmanNameInput.placeholder = "Enter New Batsman Name (Non-Striker)"; // Clarify role
-                newBatsmanNameInput.focus(); // Focus for user input
-                toggleGameControls(false); // Disable controls until new batsman is added
-                inputStage = 'newBatsman'; // Set stage for replacement batsman
-                showMessage("Wicket! Please enter the new batsman's name.", false);
-            } else {
-                // All out
-                updateDisplay(); // Update display one last time
-                checkGameEndCondition();
+                    currentBowlerRef.ballsBowled++; // Bowler's balls bowled
+                    currentBowlerRef.wicketsTaken++; // Bowler gets the wicket
+
+                    // Handle end of bowler's over if this wicket was the 6th ball
+                    if (currentBowlerRef.ballsBowled % 6 === 0) {
+                        endOfBowlerOver(currentBowlerRef);
+                    }
+
+                    // Prepare for new batsman input
+                    newBatsmanInputArea.classList.remove('hidden');
+                    newBatsmanNameInput.value = ''; // Clear previous input
+                    newBatsmanNameInput.placeholder = "Enter New Batsman Name (Non-Striker)"; // Clarify role
+                    newBatsmanNameInput.focus(); // Focus for user input
+                    toggleGameControls(false); // Disable controls until new batsman is added
+                    inputStage = 'newBatsman'; // Set stage for replacement batsman
+                    showMessage("Wicket! Please enter the new batsman's name.", false);
+                } else {
+                    // All out
+                    updateDisplay(); // Update display one last time
+                    checkGameEndCondition();
+                }
             }
+            updateDisplay();
         }
 
         // Function to handle the end of a bowler's over
