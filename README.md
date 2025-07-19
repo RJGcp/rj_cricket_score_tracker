@@ -128,3 +128,15 @@ Check Cloud Run Logs: In the Google Cloud Console, navigate to your Cloud Run se
 Verify Dockerfile and app.py: Ensure CMD in Dockerfile is correct (CMD gunicorn --bind 0.0.0.0:$PORT app:app) and that app.py is correctly defined and accessible in the container's /app directory.
 
 Test Locally: Always test your Docker image locally using docker build and docker run before deploying to Cloud Run. This helps isolate issues to your application code or Dockerfile.
+
+Test this in local dev machine:
+    python3 -m venv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+    gcloud auth application-default login
+    export FLASK_SECRET_KEY=""
+    export __firebase_config="{}" # Empty JSON string for local testing
+    export __initial_auth_token="f9264b6c5c6c448da9ec4ee1291e9e495146a2c8b8b42be71adandansdbasfbasou"
+    export __app_id="local-test-app"
+    export PORT=8080 # Optional, but good practice
+    python3 app.py
