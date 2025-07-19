@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cricket Score Tracker</title>
+    <title>RJ's Cricket Score Tracker</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Custom styles for Inter font and general body styling */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f2f5; /* Light gray background */
+            /* IPL-like gradient background */
+            background: linear-gradient(to bottom right, #1a202c, #4a90e2, #f6ad55); /* Dark blue -> Vibrant Blue -> Orange/Gold */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -63,7 +64,7 @@
             font-weight: bold;
             color: #4a5568;
         }
-        /* Modal styles */
+        /* Message Display Modal styles */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -85,23 +86,91 @@
             max-width: 400px;
             width: 90%;
         }
+
+        /* Winner Modal specific styles */
+        .winner-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); /* Darker overlay */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000; /* Higher z-index than other modals */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .winner-modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .winner-modal-content {
+            background: linear-gradient(to bottom right, #ffd700, #ffa500); /* Gold to Orange gradient */
+            color: #fff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+        .winner-modal-overlay.show .winner-modal-content {
+            transform: scale(1);
+        }
+        .trophy-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+        }
+        .winner-message {
+            font-size: 3rem; /* Larger font size */
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            line-height: 1.2;
+        }
+        .tie-message {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+        }
+
+        /* Team Score Card Background Images */
+        .team1-score-card {
+            /* Chennai Super Kings Logo */
+            background: linear-gradient(rgba(74, 144, 226, 0.7), rgba(26, 32, 44, 0.7)), url('https://upload.wikimedia.org/wikipedia/en/thumb/2/2b/Chennai_Super_Kings_Logo.svg/1200px-Chennai_Super_Kings_Logo.svg.png') no-repeat center center;
+            background-size: cover;
+        }
+
+        .team2-score-card {
+            /* Punjab Kings Logo */
+            background: linear-gradient(rgba(74, 144, 226, 0.7), rgba(26, 32, 44, 0.7)), url('https://i.pinimg.com/736x/48/4f/d8/484fd8fe48afb7267575789a8006f54f.jpg') no-repeat center center;
+            background-size: cover;
+        }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
     <div class="score-container bg-white rounded-xl shadow-2xl p-8 w-full max-w-4xl">
         <h1 class="text-4xl font-extrabold text-center text-gray-800 mb-8">
-            🏏 Cricket Score Tracker
+            <img src="https://cdnb.artstation.com/p/assets/images/images/062/209/509/large/krishnakant-prajapati-trophy-05.jpg?1682597960" alt="IPL Trophy Logo" class="h-16 w-16 mr-4 inline-block rounded-full object-cover">
+            RJ's Cricket Score Tracker
         </h1>
 
         <!-- Team Name Inputs -->
         <div class="flex flex-col md:flex-row justify-around items-center mb-8 space-y-4 md:space-y-0 md:space-x-8">
             <div class="w-full md:w-1/2">
                 <label for="team1Name" class="block text-lg font-semibold text-gray-700 mb-2">Team 1 Name:</label>
-                <input type="text" id="team1Name" value="Team A" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition duration-200" placeholder="Enter Team 1 Name">
+                <input type="text" id="team1Name" value="CSK" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition duration-200" placeholder="Enter Team 1 Name">
             </div>
             <div class="w-full md:w-1/2">
                 <label for="team2Name" class="block text-lg font-semibold text-gray-700 mb-2">Team 2 Name:</label>
-                <input type="text" id="team2Name" value="Team B" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition duration-200" placeholder="Enter Team 2 Name">
+                <input type="text" id="team2Name" value="PBKS" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition duration-200" placeholder="Enter Team 2 Name">
             </div>
         </div>
 
@@ -123,7 +192,7 @@
         <!-- Score Display Cards -->
         <div class="flex flex-col md:flex-row justify-around items-stretch gap-8 mb-10">
             <!-- Team 1 Score Card -->
-            <div class="score-card bg-gradient-to-br from-blue-500 to-blue-700 text-white p-6 rounded-xl shadow-lg flex-1 flex flex-col justify-content-between items-center transform transition duration-300 hover:scale-105">
+            <div id="team1ScoreCard" class="score-card team1-score-card text-white p-6 rounded-xl shadow-lg flex-1 flex flex-col justify-content-between items-center transform transition duration-300 hover:scale-105">
                 <h2 id="displayTeam1Name" class="text-3xl font-bold mb-4">Team A</h2>
                 <div class="text-center mb-4">
                     <p class="text-6xl font-extrabold" id="team1Score">0/0</p>
@@ -132,7 +201,7 @@
             </div>
 
             <!-- Team 2 Score Card -->
-            <div class="score-card bg-gradient-to-br from-green-500 to-green-700 text-white p-6 rounded-xl shadow-lg flex-1 flex flex-col justify-content-between items-center transform transition duration-300 hover:scale-105">
+            <div id="team2ScoreCard" class="score-card team2-score-card text-white p-6 rounded-xl shadow-lg flex-1 flex flex-col justify-content-between items-center transform transition duration-300 hover:scale-105">
                 <h2 id="displayTeam2Name" class="text-3xl font-bold mb-4">Team B</h2>
                 <div class="text-center mb-4">
                     <p class="text-6xl font-extrabold" id="team2Score">0/0</p>
@@ -205,18 +274,42 @@
             <div class="bg-gray-50 p-5 rounded-xl shadow-md flex-1 text-center">
                 <h3 class="text-xl font-semibold text-gray-800 mb-4">Game Actions & Extras</h3>
                 <div class="flex flex-col gap-4">
-                    <button onclick="showNoBallRunsInput()" id="addNoBallBtn" class="btn-secondary bg-teal-500 text-white p-3 rounded-lg text-lg font-semibold hover:bg-teal-600 transition duration-200">No Ball</button>
                     <button onclick="addWicket()" id="addWicketBtn" class="btn-secondary bg-red-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-red-700 transition duration-200">Add Wicket</button>
-                    <!-- Removed Add Over button, as overs are now tied to bowler's balls -->
-                    <button onclick="addWide()" id="addWideBtn" class="btn-secondary bg-orange-500 text-white p-3 rounded-lg text-lg font-semibold hover:bg-orange-600 transition duration-200">Wide (+1 Run, No Ball)</button>
+                    <button onclick="addWide()" id="addWideBtn" class="btn-secondary bg-orange-500 text-white p-3 rounded-lg text-lg font-semibold hover:bg-orange-600 transition duration-200">Wide (+1 Run)</button>
+                    <button onclick="showNoBallRunsInput()" id="addNoBallBtn" class="btn-secondary bg-teal-500 text-white p-3 rounded-lg text-lg font-semibold hover:bg-teal-600 transition duration-200">No Ball (+1 Run)</button>
+                    <button onclick="showByesRunsInput()" id="addByesBtn" class="btn-secondary bg-gray-400 text-white p-3 rounded-lg text-lg font-semibold hover:bg-gray-500 transition duration-200">Byes</button>
+                    <button onclick="showLegByesRunsInput()" id="addLegByesBtn" class="btn-secondary bg-gray-400 text-white p-3 rounded-lg text-lg font-semibold hover:bg-gray-500 transition duration-200">Leg Byes</button>
                     <button onclick="nextInnings()" id="nextInningsBtn" class="btn-secondary bg-indigo-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-indigo-700 transition duration-200">Next Innings</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Extras Summary Display -->
+        <div class="bg-gray-50 p-5 rounded-xl shadow-md mb-8">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">Extras Summary</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div>
+                    <p class="text-lg font-medium text-gray-700">Wides:</p>
+                    <p class="text-2xl font-bold text-blue-600" id="displayWides">0</p>
+                </div>
+                <div>
+                    <p class="text-lg font-medium text-gray-700">No Balls:</p>
+                    <p class="text-2xl font-bold text-red-600" id="displayNoBalls">0</p>
+                </div>
+                <div>
+                    <p class="text-lg font-medium text-gray-700">Byes:</p>
+                    <p class="text-2xl font-bold text-green-600" id="displayByes">0</p>
+                </div>
+                <div>
+                    <p class="text-lg font-medium text-gray-700">Leg Byes:</p>
+                    <p class="text-2xl font-bold text-purple-600" id="displayLegByes">0</p>
                 </div>
             </div>
         </div>
 
         <!-- Scorecard Display -->
         <div class="bg-gray-50 p-5 rounded-xl shadow-md mb-8">
-            <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">Scorecard</h3>
+            <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">Batsman Scorecard</h3>
             <div class="overflow-x-auto">
                 <table class="min-w-full scorecard-table">
                     <thead>
@@ -266,11 +359,6 @@
                 Reset Score
             </button>
         </div>
-
-        <!-- Winner Display -->
-        <div id="winnerDisplay" class="text-center mt-8 p-4 bg-yellow-100 text-yellow-800 rounded-lg text-2xl font-bold hidden">
-            <!-- Winner message will be displayed here -->
-        </div>
     </div>
 
     <!-- No-Ball Runs Input Modal -->
@@ -286,6 +374,42 @@
                 <button onclick="processNoBallRuns(6)" class="btn-primary bg-blue-500 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-600">6 Runs</button>
             </div>
             <button onclick="hideNoBallRunsInput()" class="btn-secondary bg-gray-500 text-white p-2 rounded-lg text-md font-semibold hover:bg-gray-600">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Byes Runs Input Modal -->
+    <div id="byesRunsModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Runs Scored as Byes</h3>
+            <div class="grid grid-cols-3 gap-4 mb-4">
+                <button onclick="processByesRuns(1)" class="btn-primary bg-blue-500 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-600">1 Run</button>
+                <button onclick="processByesRuns(2)" class="btn-primary bg-blue-500 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-600">2 Runs</button>
+                <button onclick="processByesRuns(3)" class="btn-primary bg-blue-500 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-600">3 Runs</button>
+                <button onclick="processByesRuns(4)" class="btn-primary bg-blue-500 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-600">4 Runs</button>
+            </div>
+            <button onclick="hideByesRunsInput()" class="btn-secondary bg-gray-500 text-white p-2 rounded-lg text-md font-semibold hover:bg-gray-600">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Leg Byes Runs Input Modal -->
+    <div id="legByesRunsModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Runs Scored as Leg Byes</h3>
+            <div class="grid grid-cols-3 gap-4 mb-4">
+                <button onclick="processLegByesRuns(1)" class="btn-primary bg-blue-500 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-600">1 Run</button>
+                <button onclick="processLegByesRuns(2)" class="btn-primary bg-blue-500 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-600">2 Runs</button>
+                <button onclick="processLegByesRuns(3)" class="btn-primary bg-blue-500 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-600">3 Runs</button>
+                <button onclick="processLegByesRuns(4)" class="btn-primary bg-blue-500 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-600">4 Runs</button>
+            </div>
+            <button onclick="hideLegByesRunsInput()" class="btn-secondary bg-gray-500 text-white p-2 rounded-lg text-md font-semibold hover:bg-gray-600">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Winner Modal -->
+    <div id="winnerModalOverlay" class="winner-modal-overlay">
+        <div id="winnerModalContent" class="winner-modal-content">
+            <div class="trophy-icon">🏆</div>
+            <p id="winnerMessage" class="winner-message"></p>
         </div>
     </div>
 
@@ -312,6 +436,10 @@
         let team1CurrentNonStriker = null;
         let team1Bowlers = []; // Array to store player objects for Team 1 (bowlers)
         let team1CurrentBowler = null; // Current bowler for team 1 (when team 2 is batting)
+        let team1Wides = 0;
+        let team1NoBalls = 0;
+        let team1Byes = 0;
+        let team1LegByes = 0;
 
         let team2Runs = 0;
         let team2Wickets = 0;
@@ -322,6 +450,10 @@
         let team2CurrentNonStriker = null;
         let team2Bowlers = []; // Array to store player objects for Team 2 (bowlers)
         let team2CurrentBowler = null; // Current bowler for team 2 (when team 1 is batting)
+        let team2Wides = 0;
+        let team2NoBalls = 0;
+        let team2Byes = 0;
+        let team2LegByes = 0;
 
         let currentInnings = 1; // 1 for Team 1 batting, 2 for Team 2 batting
         let team1Batting = true; // True if Team 1 is currently batting
@@ -340,7 +472,6 @@
         const team2ScoreDisplay = document.getElementById('team2Score');
         const team2OversDisplay = document.getElementById('team2Overs');
         const currentInningsDisplay = document.getElementById('currentInnings');
-        const winnerDisplay = document.getElementById('winnerDisplay');
         const targetDisplay = document.getElementById('targetDisplay');
 
         const strikerNameInput = document.getElementById('strikerNameInput');
@@ -354,7 +485,6 @@
         const newBatsmanNameInput = document.getElementById('newBatsmanName');
         const addNewBatsmanButton = document.getElementById('addNewBatsmanButton');
         const messageDisplay = document.getElementById('messageDisplay');
-        const noBallRunsModal = document.getElementById('noBallRunsModal');
 
         const currentBowlerNameInput = document.getElementById('currentBowlerNameInput');
         const currentBowlerOversDisplay = document.getElementById('currentBowlerOversDisplay');
@@ -362,6 +492,20 @@
         const newBowlerNameInput = document.getElementById('newBowlerName');
         const addNewBowlerButton = document.getElementById('addNewBowlerButton');
         const bowlerScorecardBody = document.getElementById('bowlerScorecardBody');
+
+        // Extras Display elements
+        const displayWides = document.getElementById('displayWides');
+        const displayNoBalls = document.getElementById('displayNoBalls');
+        const displayByes = document.getElementById('displayByes');
+        const displayLegByes = document.getElementById('displayLegByes');
+
+        // Modals
+        const noBallRunsModal = document.getElementById('noBallRunsModal');
+        const byesRunsModal = document.getElementById('byesRunsModal');
+        const legByesRunsModal = document.getElementById('legByesRunsModal');
+        const winnerModalOverlay = document.getElementById('winnerModalOverlay');
+        const winnerMessageElement = document.getElementById('winnerMessage');
+
 
         // Get references to all game control buttons
         const gameControlButtons = [
@@ -372,9 +516,10 @@
             document.getElementById('addRun6Btn'),
             document.getElementById('addDotBallBtn'),
             document.getElementById('addWicketBtn'),
-            // document.getElementById('addOverBtn'), // Removed as overs are now tied to bowler's balls
             document.getElementById('addWideBtn'),
             document.getElementById('addNoBallBtn'),
+            document.getElementById('addByesBtn'),
+            document.getElementById('addLegByesBtn'),
             document.getElementById('nextInningsBtn'),
             document.getElementById('rotateStrikeBtn'),
             document.getElementById('changeBowlerBtn')
@@ -428,6 +573,12 @@
                 updateScorecard(team1Players);
                 updateBowlerDisplay(team2CurrentBowler); // Show bowler for the fielding team
                 updateBowlerScorecard(team2Bowlers);
+                // Update extras for current batting team (Team 1)
+                displayWides.textContent = team1Wides;
+                displayNoBalls.textContent = team1NoBalls;
+                displayByes.textContent = team1Byes;
+                displayLegByes.textContent = team1LegByes;
+
             } else {
                 currentInningsDisplay.textContent = `${team2NameInput.value || "Team B"} Batting`;
                 targetDisplay.classList.remove('hidden');
@@ -441,9 +592,15 @@
                 updateScorecard(team2Players);
                 updateBowlerDisplay(team1CurrentBowler); // Show bowler for the fielding team
                 updateBowlerScorecard(team1Bowlers);
+                // Update extras for current batting team (Team 2)
+                displayWides.textContent = team2Wides;
+                displayNoBalls.textContent = team2NoBalls;
+                displayByes.textContent = team2Byes;
+                displayLegByes.textContent = team2LegByes;
             }
 
-            winnerDisplay.classList.add('hidden');
+            // Ensure the winner modal is hidden by default unless explicitly shown
+            winnerModalOverlay.classList.remove('show');
         }
 
         // Function to update current batters display area
@@ -625,8 +782,10 @@
             // Add runs scored off the bat to both team total and striker's runs
             if (team1Batting) {
                 team1Runs += (1 + runsScoredOffBat);
+                team1NoBalls++; // Increment no-ball count for the batting team
             } else {
                 team2Runs += (1 + runsScoredOffBat);
+                team2NoBalls++; // Increment no-ball count for the batting team
             }
             
             currentStriker.runs += runsScoredOffBat;
@@ -651,6 +810,61 @@
             showMessage(`No Ball! ${1 + runsScoredOffBat} runs added (1 extra + ${runsScoredOffBat} from bat).`, false);
         }
 
+        // Function to show the byes runs input modal
+        function showByesRunsInput() {
+            byesRunsModal.classList.remove('hidden');
+            toggleGameControls(false); // Disable main controls
+        }
+
+        // Function to hide the byes runs input modal
+        function hideByesRunsInput() {
+            byesRunsModal.classList.add('hidden');
+            toggleGameControls(true); // Re-enable main controls
+        }
+
+        // Function to process runs scored as byes
+        function processByesRuns(runs) {
+            if (team1Batting) {
+                team1Runs += runs;
+                team1Byes += runs; // Increment byes count
+            } else {
+                team2Runs += runs;
+                team2Byes += runs; // Increment byes count
+            }
+            // Byes do not count as a ball for batsman or bowler
+            hideByesRunsInput();
+            updateDisplay();
+            checkGameEndCondition();
+            showMessage(`${runs} Byes added.`, false);
+        }
+
+        // Function to show the leg byes runs input modal
+        function showLegByesRunsInput() {
+            legByesRunsModal.classList.remove('hidden');
+            toggleGameControls(false); // Disable main controls
+        }
+
+        // Function to hide the leg byes runs input modal
+        function hideLegByesRunsInput() {
+            legByesRunsModal.classList.add('hidden');
+            toggleGameControls(true); // Re-enable main controls
+        }
+
+        // Function to process runs scored as leg byes
+        function processLegByesRuns(runs) {
+            if (team1Batting) {
+                team1Runs += runs;
+                team1LegByes += runs; // Increment leg byes count
+            } else {
+                team2Runs += runs;
+                team2LegByes += runs; // Increment leg byes count
+            }
+            // Leg Byes do not count as a ball for batsman or bowler
+            hideLegByesRunsInput();
+            updateDisplay();
+            checkGameEndCondition();
+            showMessage(`${runs} Leg Byes added.`, false);
+        }
 
         // Function to add a wide ball
         function addWide() {
@@ -658,9 +872,11 @@
 
             if (team1Batting) {
                 team1Runs += 1; // Add 1 run for wide
+                team1Wides++; // Increment wide count
                 currentBowlerRef = team2CurrentBowler;
             } else {
                 team2Runs += 1; // Add 1 run for wide
+                team2Wides++; // Increment wide count
                 currentBowlerRef = team1CurrentBowler;
             }
 
@@ -675,6 +891,7 @@
 
             updateDisplay();
             checkGameEndCondition();
+            showMessage("Wide ball! 1 run added.", false);
         }
 
         // Function to add a wicket
@@ -769,10 +986,9 @@
         // Function to handle the end of a bowler's over
         function endOfBowlerOver(bowler) {
             bowler.oversBowled = Math.floor(bowler.ballsBowled / 6); // Update full overs bowled
-            // bowler.ballsBowled = 0; // Don't reset ballsBowled here, it's total balls bowled by this bowler
             showMessage(`${bowler.name} completed an over! Please select a new bowler.`, false);
             changeBowler(); // Force bowler change
-            // Removed rotateStrike() from here, as it's handled by addRuns based on runs scored on the last ball.
+            // IMPORTANT: No rotateStrike() here. It's handled by addRuns based on the last ball.
         }
 
         // Function to rotate strike manually
@@ -830,8 +1046,7 @@
                 targetScore = team1Runs + 1; // Set target for second innings
                 team1Batting = false;
                 currentInnings = 2;
-                winnerDisplay.classList.add('hidden');
-
+                
                 // Clear current striker/non-striker for the new innings
                 team1CurrentStriker = null;
                 team1CurrentNonStriker = null;
@@ -877,12 +1092,23 @@
 
         // Function to declare the winner
         function declareWinner(winnerName) {
-            winnerDisplay.textContent = `🎉 ${winnerName} Wins! 🎉`;
+            winnerMessageElement.textContent = `${winnerName} Wins!`;
+            winnerMessageElement.classList.remove('winner-message', 'tie-message'); // Reset classes
+
             if (winnerName === "Match Tied!") {
-                winnerDisplay.textContent = `🤝 Match Tied! �`;
+                winnerMessageElement.textContent = `Match Tied!`;
+                winnerMessageElement.classList.add('tie-message');
+            } else {
+                winnerMessageElement.classList.add('winner-message');
             }
-            winnerDisplay.classList.remove('hidden');
+            
+            winnerModalOverlay.classList.add('show'); // Show the modal
             toggleGameControls(false); // Disable controls after game ends
+
+            // Automatically hide the modal after 5 seconds
+            setTimeout(() => {
+                winnerModalOverlay.classList.remove('show');
+            }, 5000);
         }
 
         // Function to reset the score
@@ -896,6 +1122,10 @@
             team1CurrentNonStriker = null;
             team1Bowlers = [];
             team1CurrentBowler = null;
+            team1Wides = 0;
+            team1NoBalls = 0;
+            team1Byes = 0;
+            team1LegByes = 0;
 
             team2Runs = 0;
             team2Wickets = 0;
@@ -906,6 +1136,10 @@
             team2CurrentNonStriker = null;
             team2Bowlers = [];
             team2CurrentBowler = null;
+            team2Wides = 0;
+            team2NoBalls = 0;
+            team2Byes = 0;
+            team2LegByes = 0;
 
             currentInnings = 1;
             team1Batting = true;
@@ -932,7 +1166,8 @@
             showMessage("Game Reset. Please enter the names of the first two batsmen for Team 1.", false);
 
             updateDisplay();
-            deleteGameState(); // Delete game state from backend on reset
+            // No need to delete game state from backend on client-side reset
+            // deleteGameState(); // Uncomment if you want to clear backend on every client-side reset
         }
 
         // Event listener for the "Add New Batsman" button
@@ -1011,6 +1246,7 @@
                 team1CurrentNonStriker: team1CurrentNonStriker ? team1CurrentNonStriker.name : null,
                 team1Bowlers: team1Bowlers.map(p => ({ ...p })), // Deep copy bowlers
                 team1CurrentBowler: team1CurrentBowler ? team1CurrentBowler.name : null,
+                team1Wides, team1NoBalls, team1Byes, team1LegByes,
 
                 team2Runs, team2Wickets, team2Balls, team2Overs,
                 team2Players: team2Players.map(p => ({ ...p })), // Deep copy players
@@ -1018,6 +1254,7 @@
                 team2CurrentNonStriker: team2CurrentNonStriker ? team2CurrentNonStriker.name : null,
                 team2Bowlers: team2Bowlers.map(p => ({ ...p })), // Deep copy bowlers
                 team2CurrentBowler: team2CurrentBowler ? team2CurrentBowler.name : null,
+                team2Wides, team2NoBalls, team2Byes, team2LegByes,
                 
                 currentInnings, team1Batting, targetScore, inputStage, // Save inputStage
                 team1Name: team1NameInput.value,
@@ -1063,6 +1300,10 @@
                     team1Players = loadedState.team1Players.map(p => Object.assign(new Player(), p));
                     // Re-instantiate Player objects for bowlers
                     team1Bowlers = loadedState.team1Bowlers.map(p => Object.assign(new Player(), p));
+                    team1Wides = loadedState.team1Wides || 0;
+                    team1NoBalls = loadedState.team1NoBalls || 0;
+                    team1Byes = loadedState.team1Byes || 0;
+                    team1LegByes = loadedState.team1LegByes || 0;
                     
                     team2Runs = loadedState.team2Runs;
                     team2Wickets = loadedState.team2Wickets;
@@ -1072,6 +1313,10 @@
                     team2Players = loadedState.team2Players.map(p => Object.assign(new Player(), p));
                     // Re-instantiate Player objects for bowlers
                     team2Bowlers = loadedState.team2Bowlers.map(p => Object.assign(new Player(), p));
+                    team2Wides = loadedState.team2Wides || 0;
+                    team2NoBalls = loadedState.team2NoBalls || 0;
+                    team2Byes = loadedState.team2Byes || 0;
+                    team2LegByes = loadedState.team2LegByes || 0;
 
                     currentInnings = loadedState.currentInnings;
                     team1Batting = loadedState.team1Batting;
