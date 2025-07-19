@@ -896,17 +896,18 @@
 
         // Function to add a wicket
         function addWicket() {
-            let currentStriker, currentNonStriker;
+            let currentStriker;
             let currentBowlerRef;
+            let currentTeamPlayers;
 
             if (team1Batting) {
                 currentStriker = team1CurrentStriker;
-                currentNonStriker = team1CurrentNonStriker;
                 currentBowlerRef = team2CurrentBowler;
+                currentTeamPlayers = team1Players;
             } else {
                 currentStriker = team2CurrentStriker;
-                currentNonStriker = team2CurrentNonStriker;
                 currentBowlerRef = team1CurrentBowler;
+                currentTeamPlayers = team2Players;
             }
 
             if (!currentStriker) {
@@ -936,10 +937,13 @@
                         endOfBowlerOver(currentBowlerRef);
                     }
 
+                    // The striker is out. The non-striker remains. A new batsman will replace the striker.
+                    team1CurrentStriker = null; // Clear striker, new batsman will take this spot
+
                     // Prepare for new batsman input
                     newBatsmanInputArea.classList.remove('hidden');
                     newBatsmanNameInput.value = ''; // Clear previous input
-                    newBatsmanNameInput.placeholder = "Enter New Batsman Name (Non-Striker)"; // Clarify role
+                    newBatsmanNameInput.placeholder = "Enter New Batsman Name (Striker)"; // Clarify role
                     newBatsmanNameInput.focus(); // Focus for user input
                     toggleGameControls(false); // Disable controls until new batsman is added
                     inputStage = 'newBatsman'; // Set stage for replacement batsman
@@ -966,10 +970,13 @@
                         endOfBowlerOver(currentBowlerRef);
                     }
 
+                    // The striker is out. The non-striker remains. A new batsman will replace the striker.
+                    team2CurrentStriker = null; // Clear striker, new batsman will take this spot
+
                     // Prepare for new batsman input
                     newBatsmanInputArea.classList.remove('hidden');
                     newBatsmanNameInput.value = ''; // Clear previous input
-                    newBatsmanNameInput.placeholder = "Enter New Batsman Name (Non-Striker)"; // Clarify role
+                    newBatsmanNameInput.placeholder = "Enter New Batsman Name (Striker)"; // Clarify role
                     newBatsmanNameInput.focus(); // Focus for user input
                     toggleGameControls(false); // Disable controls until new batsman is added
                     inputStage = 'newBatsman'; // Set stage for replacement batsman
@@ -1204,8 +1211,8 @@
                     showMessage("Batsmen set. Now, please enter the first bowler for Team 2.", false);
                 } else if (inputStage === 'newBatsman') {
                     // This scenario means a wicket fell, and we're adding a new batsman
-                    // The striker is already shifted, so this new batsman is the non-striker
-                    team1CurrentNonStriker = newBatsman;
+                    // The new batsman replaces the out striker.
+                    team1CurrentStriker = newBatsman;
                     newBatsmanInputArea.classList.add('hidden');
                     toggleGameControls(true);
                     showMessage("New batsman added. Game continues!", false);
@@ -1227,8 +1234,8 @@
                     showMessage("Batsmen set. Now, please enter the first bowler for Team 1.", false);
                 } else if (inputStage === 'newBatsman') {
                     // This scenario means a wicket fell, and we're adding a new batsman
-                    // The striker is already shifted, so this new batsman is the non-striker
-                    team2CurrentNonStriker = newBatsman;
+                    // The new batsman replaces the out striker.
+                    team2CurrentStriker = newBatsman;
                     newBatsmanInputArea.classList.add('hidden');
                     toggleGameControls(true);
                     showMessage("New batsman added. Game continues!", false);
