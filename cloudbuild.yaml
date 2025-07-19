@@ -19,6 +19,7 @@ steps:
     - '--platform'
     - 'managed'
     - '--allow-unauthenticated'
+    - '--set-secrets=FLASK_SECRET_KEY=cricket-tracker-service-flask-secret-key:latest'
 images:
 - 'us-central1-docker.pkg.dev/burner-ravk/rjesus/rjesus/rjesus:$COMMIT_SHA'
 options:
