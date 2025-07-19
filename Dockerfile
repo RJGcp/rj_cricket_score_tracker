@@ -11,8 +11,16 @@ COPY requirements.txt .
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the application files into the container
-COPY . .
+# Add a pip check to verify installed dependencies
+# This command will exit with an error if there are unsatisfied dependencies
+RUN pip check
+
+# Copy the Flask application file (app.py)
+COPY app.py .
+
+# Create the 'templates' directory and copy index.html into it
+RUN mkdir -p templates
+COPY index.html templates/
 
 # Cloud Run expects the application to listen on the port specified by the PORT environment variable
 # Set a default port for local testing, but Cloud Run will override it.
